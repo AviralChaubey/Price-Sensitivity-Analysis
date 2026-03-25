@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FoDS - Product Selling Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #070b12;
+      background-image: radial-gradient(1200px 800px at 15% 10%, rgba(43,152,255,0.25), rgba(255,255,255,0) 60%),
+                        radial-gradient(1000px 600px at 85% 30%, rgba(96,165,250,0.2), rgba(255,255,255,0) 55%),
+                        radial-gradient(800px 500px at 50% 90%, rgba(16,185,129,0.15), rgba(255,255,255,0) 50%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #e8eef6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 50px;
+      padding: 40px 20px;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #93c5fd, #22d3ee, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+      color: #cdd6e5;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 50px;
+    }
+
+    .dashboard-card {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+      border: 1px solid rgba(148, 197, 253, 0.2);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dashboard-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.1), transparent);
+      transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(34, 211, 238, 0.2);
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+
+    .dashboard-card:hover::before {
+      top: -25%;
+      right: -25%;
+    }
+
+    .card-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #e2e8f0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #a0aec0;
+      margin-bottom: 20px;
+      flex-grow: 1;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-features {
+      font-size: 12px;
+      color: #7e8cab;
+      padding-top: 15px;
+      border-top: 1px solid rgba(148, 197, 253, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-features li {
+      list-style: none;
+      margin: 5px 0;
+      padding-left: 15px;
+      position: relative;
+    }
+
+    .card-features li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #22d3ee;
+      font-weight: bold;
+    }
+
+    .card-blue {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(96, 165, 250, 0.1) 100%);
+      border: 2px solid rgba(34, 211, 238, 0.5);
+    }
+
+    .card-green {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+      border: 2px solid rgba(16, 185, 129, 0.5);
+    }
+
+    .card-orange {
+      background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+      border: 2px solid rgba(251, 146, 60, 0.5);
+    }
+
+    .card-pink {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(219, 39, 119, 0.1) 100%);
+      border: 2px solid rgba(236, 72, 153, 0.5);
+    }
+
+    .card-indigo {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+      border: 2px solid rgba(99, 102, 241, 0.5);
+    }
+
+    .card-amber {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+      border: 2px solid rgba(245, 158, 11, 0.5);
+    }
+
+    .btn-cta {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, #22d3ee, #34d399);
+      color: #070b12;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      align-self: flex-start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-cta:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(34, 211, 238, 0.5);
+    }
+
+    .features-section {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 197, 253, 0.2);
+      border-radius: 16px;
+      padding: 40px;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .features-section h2 {
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(90deg, #93c5fd, #22d3ee, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-item {
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 197, 253, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .feature-item:hover {
+      background: rgba(15, 23, 42, 0.7);
+      border-color: rgba(34, 211, 238, 0.3);
+    }
+
+    .feature-item h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .feature-item p {
+      font-size: 14px;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    .footer {
+      text-align: center;
+      color: white;
+      opacity: 0.8;
+      font-size: 14px;
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin-top: 50px;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 32px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Product Selling Dashboard</h1>
+      <p>Your complete platform for pricing analysis, market insights, and sales strategy</p>
+    </div>
+
+    <div class="features-section">
+      <h2>Core Features</h2>
+      <div class="features-grid">
+        <div class="feature-item">
+          <h3>📊 Price Analysis</h3>
+          <p>Model demand curves and optimize pricing to maximize revenue and profit margins.</p>
+        </div>
+        <div class="feature-item">
+          <h3>🤖 AI Assistant</h3>
+          <p>Get intelligent advice on product selling strategies from our AI bot.</p>
+        </div>
+        <div class="feature-item">
+          <h3>📈 Market Insights</h3>
+          <p>Analyze market trends and competitive positioning for your product.</p>
+        </div>
+        <div class="feature-item">
+          <h3>🎯 Sales Tracking</h3>
+          <p>Monitor your sales pipeline and conversion metrics in real-time.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <a href="index.html" class="dashboard-card card-blue">
+        <div class="card-icon">📊</div>
+        <h2 class="card-title">Price Sensitivity Analyzer</h2>
+        <p class="card-description">
+          Advanced pricing analysis tool to understand customer demand and optimize your price points for maximum revenue.
+        </p>
+        <ul class="card-features">
+          <li>Demand curve modeling</li>
+          <li>Revenue optimization</li>
+          <li>Elasticity analysis</li>
+          <li>Profit forecasting</li>
+        </ul>
+        <button class="btn-cta">Launch Analyzer</button>
+      </a>
+
+      <a href="ai-bot.html" class="dashboard-card card-green">
+        <div class="card-icon">🤖</div>
+        <h2 class="card-title">AI Selling Assistant</h2>
+        <p class="card-description">
+          Get real-time advice from our AI assistant on pricing, marketing, customer acquisition, and sales strategies.
+        </p>
+        <ul class="card-features">
+          <li>Smart Q&A bot</li>
+          <li>Strategic advice</li>
+          <li>Best practices</li>
+          <li>Market insights</li>
+        </ul>
+        <button class="btn-cta">Chat Now</button>
+      </a>
+
+      <a href="market-research.html" class="dashboard-card card-orange">
+        <div class="card-icon">🔍</div>
+        <h2 class="card-title">Market Research Tool</h2>
+        <p class="card-description">
+          Analyze market size, competitor landscape, and customer segments to validate your product strategy.
+        </p>
+        <ul class="card-features">
+          <li>Competitor analysis</li>
+          <li>Market sizing</li>
+          <li>Trend spotting</li>
+          <li>SWOT analysis</li>
+        </ul>
+        <button class="btn-cta">Explore Market</button>
+      </a>
+
+      <a href="sales-pipeline.html" class="dashboard-card card-pink">
+        <div class="card-icon">📈</div>
+        <h2 class="card-title">Sales Pipeline Tracker</h2>
+        <p class="card-description">
+          Track your sales funnel, conversion rates, and pipeline health. Monitor deals from lead to close.
+        </p>
+        <ul class="card-features">
+          <li>Deal tracking</li>
+          <li>Conversion metrics</li>
+          <li>Pipeline health</li>
+          <li>Forecast projections</li>
+        </ul>
+        <button class="btn-cta">View Pipeline</button>
+      </a>
+
+      <a href="customer-feedback.html" class="dashboard-card card-indigo">
+        <div class="card-icon">💬</div>
+        <h2 class="card-title">Customer Feedback Portal</h2>
+        <p class="card-description">
+          Collect, analyze, and act on customer feedback to improve product-market fit and satisfaction.
+        </p>
+        <ul class="card-features">
+          <li>Feedback collection</li>
+          <li>Sentiment analysis</li>
+          <li>Issue tracking</li>
+          <li>Trend identification</li>
+        </ul>
+        <button class="btn-cta">View Feedback</button>
+      </a>
+
+      <a href="strategy-guide.html" class="dashboard-card card-amber">
+        <div class="card-icon">📚</div>
+        <h2 class="card-title">Product Strategy Guide</h2>
+        <p class="card-description">
+          Comprehensive guide to developing and executing your go-to-market strategy and growth roadmap.
+        </p>
+        <ul class="card-features">
+          <li>GTM frameworks</li>
+          <li>Growth strategies</li>
+          <li>Positioning tips</li>
+          <li>Case studies</li>
+        </ul>
+        <button class="btn-cta">Read Guide</button>
+      </a>
+
+      <a href="revenue-analytics.html" class="dashboard-card card-blue">
+        <div class="card-icon">💰</div>
+        <h2 class="card-title">Revenue Analytics</h2>
+        <p class="card-description">
+          Track revenue metrics, forecast growth, and analyze customer lifetime value to optimize profitability.
+        </p>
+        <ul class="card-features">
+          <li>Revenue tracking</li>
+          <li>Growth forecasting</li>
+          <li>Cohort analysis</li>
+          <li>Unit economics</li>
+        </ul>
+        <button class="btn-cta">View Analytics</button>
+      </a>
+
+      <a href="competitive-intelligence.html" class="dashboard-card card-pink">
+        <div class="card-icon">⚔️</div>
+        <h2 class="card-title">Competitive Intelligence</h2>
+        <p class="card-description">
+          Monitor competitor strategies, feature comparisons, and market positioning to stay ahead of the competition.
+        </p>
+        <ul class="card-features">
+          <li>Competitor tracking</li>
+          <li>Feature matrix</li>
+          <li>Win/loss analysis</li>
+          <li>Market positioning</li>
+        </ul>
+        <button class="btn-cta">Analyze Competitors</button>
+      </a>
+
+      <a href="customer-analytics.html" class="dashboard-card card-green">
+        <div class="card-icon">👥</div>
+        <h2 class="card-title">Customer Analytics</h2>
+        <p class="card-description">
+          Understand customer behavior, segment cohorts, and optimize the entire customer journey for retention.
+        </p>
+        <ul class="card-features">
+          <li>Cohort analysis</li>
+          <li>Retention tracking</li>
+          <li>Behavior patterns</li>
+          <li>Journey mapping</li>
+        </ul>
+        <button class="btn-cta">Analyze Customers</button>
+      </a>
+
+      <a href="team-performance.html" class="dashboard-card card-indigo">
+        <div class="card-icon">🎯</div>
+        <h2 class="card-title">Team Performance</h2>
+        <p class="card-description">
+          Monitor sales rep performance, track conversion metrics, and manage team goals and incentives.
+        </p>
+        <ul class="card-features">
+          <li>Rep leaderboards</li>
+          <li>Conversion tracking</li>
+          <li>Activity metrics</li>
+          <li>Goal management</li>
+        </ul>
+        <button class="btn-cta">View Team</button>
+      </a>
+    </div>
+
+    <div class="footer">
+      <p>© 2026 FoDS - Fruits of Data Science. Empowering product sellers with data-driven insights.</p>
+    </div>
+  </div>
+</body>
+</html>

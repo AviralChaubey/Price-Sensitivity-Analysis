@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Competitive Intelligence</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #070b12;
+      background-image: radial-gradient(1200px 800px at 15% 10%, rgba(43,152,255,0.25), rgba(255,255,255,0) 60%),
+                        radial-gradient(1000px 600px at 85% 30%, rgba(96,165,250,0.2), rgba(255,255,255,0) 55%),
+                        radial-gradient(800px 500px at 50% 90%, rgba(16,185,129,0.15), rgba(255,255,255,0) 50%);
+      min-height: 100vh;
+      color: #e8eef6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #93c5fd, #22d3ee, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .back-btn {
+      background: rgba(148, 197, 253, 0.1);
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      color: #a0aec0;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(148, 197, 253, 0.2);
+      color: #e2e8f0;
+    }
+
+    .section {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 197, 253, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #e2e8f0;
+      border-bottom: 2px solid rgba(34, 211, 238, 0.3);
+      padding-bottom: 12px;
+    }
+
+    .competitor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .competitor-card {
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .competitor-card:hover {
+      background: rgba(34, 211, 238, 0.1);
+      border-color: rgba(34, 211, 238, 0.5);
+      transform: translateY(-4px);
+    }
+
+    .competitor-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #22d3ee;
+      margin-bottom: 10px;
+    }
+
+    .competitor-detail {
+      font-size: 13px;
+      color: #a0aec0;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .strength-score {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th {
+      background: rgba(34, 211, 238, 0.2);
+      color: #e2e8f0;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(34, 211, 238, 0.5);
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(148, 197, 253, 0.1);
+      color: #a0aec0;
+    }
+
+    table tr:hover {
+      background: rgba(34, 211, 238, 0.05);
+    }
+
+    .comp-score {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .score-strong {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .score-weak {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .score-medium {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .positioning-map {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .positioning-box {
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .positioning-box h3 {
+      color: #22d3ee;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .positioning-box p {
+      color: #a0aec0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .strengths-box {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 197, 253, 0.2);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .strengths-box h3 {
+      color: #22d3ee;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .strength-item {
+      background: rgba(34, 211, 238, 0.05);
+      padding: 12px;
+      border-left: 3px solid #22d3ee;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      color: #a0aec0;
+      font-size: 13px;
+    }
+
+    .strength-item strong {
+      color: #e2e8f0;
+    }
+
+    .win-loss-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .win-loss-card {
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .win-loss-card h3 {
+      color: #22d3ee;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .loss-reason {
+      color: #a0aec0;
+      font-size: 13px;
+      margin-bottom: 6px;
+      padding-left: 15px;
+      position: relative;
+    }
+
+    .loss-reason:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚔️ Competitive Intelligence</h1>
+      <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+    </div>
+
+    <div class="section">
+      <h2>Direct Competitors</h2>
+      <div class="competitor-grid">
+        <div class="competitor-card">
+          <div class="competitor-name">CompetitorX</div>
+          <div class="competitor-detail">
+            <span>Est. MRR: $250K</span>
+            <span>Founded: 2015</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Employees: 45</span>
+            <span>Market Share: 18%</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Pricing: $99-$499/mo</span>
+            <span>Approach: Enterprise</span>
+          </div>
+          <div class="strength-score">⭐ 8.2/10</div>
+        </div>
+
+        <div class="competitor-card">
+          <div class="competitor-name">RivalCo</div>
+          <div class="competitor-detail">
+            <span>Est. MRR: $180K</span>
+            <span>Founded: 2018</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Employees: 32</span>
+            <span>Market Share: 14%</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Pricing: $79-$399/mo</span>
+            <span>Approach: Mid-Market</span>
+          </div>
+          <div class="strength-score">⭐ 7.1/10</div>
+        </div>
+
+        <div class="competitor-card">
+          <div class="competitor-name">OppositionLabs</div>
+          <div class="competitor-detail">
+            <span>Est. MRR: $130K</span>
+            <span>Founded: 2020</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Employees: 22</span>
+            <span>Market Share: 10%</span>
+          </div>
+          <div class="competitor-detail">
+            <span>Pricing: $49-$299/mo</span>
+            <span>Approach: SMB Focused</span>
+          </div>
+          <div class="strength-score">⭐ 6.5/10</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Feature Comparison Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature / Capability</th>
+            <th>Our Product</th>
+            <th>CompetitorX</th>
+            <th>RivalCo</th>
+            <th>OppositionLabs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Core Functionality</td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td>User Experience</td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+          </tr>
+          <tr>
+            <td>Integration Ecosystem</td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+          </tr>
+          <tr>
+            <td>Customer Support</td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+          </tr>
+          <tr>
+            <td>Pricing Value</td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+          </tr>
+          <tr>
+            <td>Security/Compliance</td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-strong">Strong</span></td>
+            <td><span class="comp-score score-medium">Medium</span></td>
+            <td><span class="comp-score score-weak">Weak</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Market Positioning</h2>
+      <div class="positioning-map">
+        <div class="positioning-box">
+          <h3>Our Positioning</h3>
+          <p>Premium solution targeting enterprise and mid-market customers who need robust features, superior UX, and dedicated support. Price premium justified by measurable business outcomes.</p>
+        </div>
+        <div class="positioning-box">
+          <h3>CompetitorX Strategy</h3>
+          <p>Enterprise-focused, deep integration play. Strong in existing accounts but weak on innovation and customer experience.</p>
+        </div>
+        <div class="positioning-box">
+          <h3>RivalCo Strategy</h3>
+          <p>Mid-market sweet spot with balanced feature set and good support. Trying to move upmarket but lacking enterprise depth.</p>
+        </div>
+        <div class="positioning-box">
+          <h3>OppositionLabs Strategy</h3>
+          <p>Price leader targeting SMBs and startups. Fast follower model but limited innovation and brand recognition.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Win/Loss Analysis</h2>
+      <div class="win-loss-container">
+        <div class="win-loss-card">
+          <h3>🎯 Why We Win</h3>
+          <div class="loss-reason">Superior user experience</div>
+          <div class="loss-reason">Better customer support</div>
+          <div class="loss-reason">More reliable infrastructure</div>
+          <div class="loss-reason">Clear product roadmap</div>
+          <div class="loss-reason">Industry expertise</div>
+        </div>
+        <div class="win-loss-card">
+          <h3>❌ Why We Lose</h3>
+          <div class="loss-reason">Higher pricing tier</div>
+          <div class="loss-reason">Fewer integrations (vs CompetitorX)</div>
+          <div class="loss-reason">Brand recognition gap</div>
+          <div class="loss-reason">Long sales cycle</div>
+          <div class="loss-reason">Limited free trial features</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Competitive Advantages</h2>
+      <div class="strengths-box">
+        <h3>Our Sustainable Advantages</h3>
+        <div class="strength-item">
+          <strong>Unique Technology:</strong> Proprietary AI-powered analytics unavailable from competitors
+        </div>
+        <div class="strength-item">
+          <strong>Customer Relationships:</strong> 92% of enterprise customers renew annual contracts
+        </div>
+        <div class="strength-item">
+          <strong>Team Expertise:</strong> Industry veterans with 150+ years combined experience
+        </div>
+        <div class="strength-item">
+          <strong>Roadmap Innovation:</strong> Next-gen features planned for Q2 that will differentiate marketplace
+        </div>
+        <div class="strength-item">
+          <strong>Brand Positioning:</strong> Leader in thought leadership with 5M+ annual impressions
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Recommended Actions</h2>
+      <div class="strengths-box">
+        <h3>Strategic Opportunities</h3>
+        <div class="strength-item">
+          <strong>Expand Integration Ecosystem:</strong> Partner with key tools used by enterprise buyers to close the integration gap vs CompetitorX
+        </div>
+        <div class="strength-item">
+          <strong>Emphasize ROI Story:</strong> Develop case studies showing 3-5x ROI to justify premium pricing
+        </div>
+        <div class="strength-item">
+          <strong>Freemium Strategy:</strong> Launch limited free tier to accelerate SMB adoption and create upgrade path
+        </div>
+        <div class="strength-item">
+          <strong>Partner Marketing:</strong> Leverage partner ecosystem to amplify brand vs price-focused competitors
+        </div>
+        <div class="strength-item">
+          <strong>Sales Acceleration:</strong> Develop playbook for shortening sales cycles through product demos and free trials
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

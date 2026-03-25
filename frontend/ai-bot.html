@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Selling AI Bot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #070b12;
+      background-image: radial-gradient(1200px 800px at 15% 10%, rgba(43,152,255,0.25), rgba(255,255,255,0) 60%),
+                        radial-gradient(1000px 600px at 85% 30%, rgba(96,165,250,0.2), rgba(255,255,255,0) 55%),
+                        radial-gradient(800px 500px at 50% 90%, rgba(16,185,129,0.15), rgba(255,255,255,0) 50%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      height: 80vh;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(148, 197, 253, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .chat-header {
+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.2), rgba(52, 211, 153, 0.2));
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(34, 211, 238, 0.1);
+      position: relative;
+      border-bottom: 1px solid rgba(148, 197, 253, 0.2);
+    }
+
+    .back-btn {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(34, 211, 238, 0.1);
+      color: #a0aec0;
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 0.2);
+      border-color: rgba(148, 197, 253, 0.5);
+      color: #e2e8f0;
+    }
+
+    .chat-header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .chat-header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      display: flex;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.bot {
+      justify-content: flex-start;
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(90deg, #22d3ee, #34d399);
+      color: #070b12;
+      border-bottom-right-radius: 2px;
+      font-weight: 500;
+    }
+
+    .message.bot .message-content {
+      background: rgba(34, 211, 238, 0.1);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      border-bottom-left-radius: 2px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      border-radius: 8px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22d3ee;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .input-area {
+      border-top: 1px solid rgba(148, 197, 253, 0.2);
+      padding: 15px;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(148, 197, 253, 0.3);
+      border-radius: 24px;
+      padding: 0 15px;
+      background: rgba(34, 211, 238, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #22d3ee;
+      background: rgba(34, 211, 238, 0.1);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+    }
+
+    .input-wrapper input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #e2e8f0;
+    }
+
+    .input-wrapper input::placeholder {
+      color: #7e8cab;
+    }
+
+    .send-btn {
+      background: linear-gradient(90deg, #22d3ee, #34d399);
+      color: #070b12;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(34, 211, 238, 0.5);
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Scrollbar styling */
+    .messages-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: rgba(34, 211, 238, 0.3);
+      border-radius: 3px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(34, 211, 238, 0.5);
+    }
+      background: #ddd;
+      border-radius: 3px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <a href="index.html" class="back-btn">← Back</a>
+      <h1>🤖 Product Selling AI Bot</h1>
+      <p>Get expert advice on your product selling challenges</p>
+    </div>
+
+    <div class="messages-container" id="messagesContainer">
+      <div class="message bot">
+        <div class="message-content">
+          👋 Hello! I'm your Product Selling AI Assistant. Tell me about your product selling challenges, and I'll help you with strategies and advice. What's on your mind?
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Tell me about your product selling problem..."
+          autocomplete="off"
+        />
+      </div>
+      <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // AI responses with more variety and realistic advice
+    const dummyResponses = {
+      'price': [
+        'Pricing is one of the most important levers for profitability. I\'d recommend conducting a price sensitivity analysis with your target customers. Test different price points and monitor conversion rates. Also consider your costs, competitor pricing, and perceived value. Many B2B products use a tiered pricing model.',
+        'When setting prices, anchor around your production costs plus desired margin, then validate against market demand. Psychological pricing (like $49 instead of $50) can increase conversion by 5-10%. Have you analyzed your competitors\' pricing strategies?',
+        'For premium positioning, focus on value communication rather than competing on price. Document your ROI for customers and use case studies. If you\'re in a competitive market, consider dynamic pricing or volume-based discounts to increase throughput.',
+        'Price elasticity matters - some products are price-sensitive while others aren\'t. Luxury goods can support higher margins, while consumables may need aggressive pricing. What\'s your target customer segment and their price sensitivity?'
+      ],
+      'customer': [
+        'Customer acquisition depends on your channel. For B2B: LinkedIn, industry events, and partnerships work well. For B2C: organic social, paid ads, and influencers. The key is understanding where your ideal customer spends their time. What\'s your go-to-market strategy?',
+        'The cost of customer acquisition (CAC) is critical. If your CAC exceeds customer lifetime value (LTV), you\'ll burn cash fast. Focus on channels with the lowest CAC first, then optimize. Referral programs and word-of-mouth are often the most efficient in the long term.',
+        'Build a strong value proposition and lead magnet. A free consultation, white paper, or trial can reduce friction. Once you have customers, focus heavily on retention - it\'s 5-25x cheaper than acquiring new ones. What\'s your retention rate?',
+        'Segmenting your audience helps. Identify your best customers (high LTV) and double down on acquiring similar profiles. Use retargeting with those who showed interest but didn\'t convert. Have you tracked which channels bring your highest-quality customers?'
+      ],
+      'marketing': [
+        'Marketing strategy depends on your budget and product type. Content marketing (blogs, videos, podcasts) builds authority and costs less than paid ads. SEO takes time but provides long-term value. What channels are currently driving your traffic?',
+        'Email marketing has one of the highest ROIs - around 42:1 in many industries. Build your list aggressively with lead magnets. Segment by customer type and tailor messaging. Most companies under-utilize email potential. How often are you emailing your list?',
+        'For digital marketing, test multiple channels: Google Ads, Facebook/Instagram, LinkedIn depending on audience. Start with small budgets, measure CAC and conversion rates, then scale winners. Many businesses waste money on vanity metrics like impressions instead of tracking conversions.',
+        'Consider partnerships and community building. Guest posts, podcasts, webinars, and collaborations extend reach with minimal cost. Your most loyal customers can become advocates - leverage testimonials and case studies heavily. What\'s your content distribution strategy?'
+      ],
+      'sales': [
+        'Sales fundamentals: qualify leads early, understand their pain points, present your solution as the answer. Most reps talk too much and listen too little. Practice consultative selling - ask questions, listen, then position your value. What\'s your sales cycle length?',
+        'Conversion optimization matters. Add social proof (reviews, testimonials, case studies) throughout your sales funnel. Reduce friction in checkout for e-commerce. For B2B, follow up consistently - many deals close on the 5th+ touchpoint. What\'s your follow-up process?',
+        'Create urgency ethically: limited time offers, scarcity, exclusive deals. But authenticity matters - fake scarcity ruins trust. Consider tiered pricing, upsells, and bundles to increase average order value. Have you analyzed your customer\'s purchase journey for optimization points?',
+        'Personalization drives conversions. Use dynamic content based on where visitors came from. A/B test headlines, CTAs, and value propositions. Sales teams should research prospects before reaching out - personalized outreach gets 2-3x higher response rates.'
+      ],
+      'product': [
+        'Product-market fit is everything. Does your product solve a real, acute problem? Validate with actual customers before heavily investing. Continuous feedback loops through surveys, interviews, and analytics keep you aligned with market needs. How are you gathering customer feedback?',
+        'Focus on core features that deliver maximum value. Avoid feature bloat - it confuses customers and increases support costs. Prioritize ruthlessly. Every feature has maintenance costs. What feedback are you hearing most from customers?',
+        'Quality matters, but so does speed-to-market. Many products are "good enough" and win through distribution. Don\'t obsess over perfection - iterate based on real usage data. Version 1.0 should be 80% of where you want it. When was your last release?',
+        'Build network effects and switching costs where possible. Integrations with popular tools, data portability concerns, and community engagement increase retention. Early community building around your product creates viral loops. What community initiatives are you considering?'
+      ],
+      'competition': [
+        'Competition validates market demand, which is actually good. Instead of copying competitors, identify their weaknesses and your unique angle. Are you faster, cheaper, more user-friendly, or solving a specific niche? Differentiation is your moat.',
+        'Competitive intelligence is valuable but don\'t obsess. Spend 20% time on competitors and 80% time on serving customers better. Often the biggest threat isn\'t competitors but customer apathy. What\'s your unfair advantage or unique insight?',
+        'If entering a crowded market, focus on underserved niches. Become the best in your category rather than competing on everything. Vertical-specific solutions often win over horizontal platforms. What\'s your specific angle or target segment?',
+        'Build defensible advantages: brand loyalty, exclusive partnerships, patents, or economies of scale. The goal isn\'t beating everyone - it\'s building something competitors can\'t easily replicate. Long-term moats win. What can YOU do that competitors can\'t?'
+      ],
+      'revenue': [
+        'Revenue models matter as much as product. SaaS recurring revenue is worth more than one-time sales. Freemium can drive adoption but requires strong conversion mechanics. Whichever model you choose, make sure unit economics work - CAC should be recoverable within reasonable timeframe.',
+        'Diversify revenue streams when possible. Licenses, services, premium tiers, and add-ons reduce reliance on single channel. But focus on mastering one first before expanding. What\'s your primary revenue driver currently?',
+        'Monitor metrics obsessively: MRR growth, churn, LTV:CAC ratio, payback period. These determine business health more than total revenue. It\'s better to have 10 passionate customers than 100 indifferent ones. What metric worries you most?'
+      ],
+      'growth': [
+        'Growth requires three things: a great product, effective acquisition, and good retention. If one is weak, growth will plateau. Most startups focus only on acquisition and ignore retention - retention compounds. What\'s your churn rate?',
+        'Experiment systematically. Growth hacking isn\'t a shortcut - it\'s disciplined testing of channels and messaging. Run 20 small experiments rather than betting on 1 big one. Document what works and scale it. What experiments failed recently?',
+        'Network effects accelerate growth but require reaching critical mass first. Viral coefficients matter - if each customer brings 1.1 new customers, you grow exponentially. If it\'s 0.9, you\'re in decline. How are you driving referrals or network effects?'
+      ]
+    };
+
+    const defaultResponses = [
+      'That\'s a great question! Can you give me more context about your specific situation? What stage is your business at, and what\'s your main constraint right now?',
+      'I see. Product selling is multifaceted. Are you struggling more with awareness, consideration, or conversion? Or is it customer retention? Understanding where customers drop off helps identify solutions.',
+      'Interesting challenge. Many sellers underestimate the importance of understanding their customer\'s decision-making process. Who\'s really making the buying decision, and what are their pain points?',
+      'That\'s a common pain point. Quick question: are you selling B2B or B2C? The strategies differ significantly. Also, do you have data on where you\'re losing opportunities - top of funnel, middle, or close?',
+      'Good observation. Most founders focus on building features rather than understanding market demand deeply. Have you interviewed 10+ potential customers about their problem and your solution approach?',
+      'I understand. The gap between a good product and a successful product is often distribution and messaging. What channels have you tried so far, and which showed the most promise?'
+    ];
+
+    function getBotResponse(userMessage) {
+      const lowerMessage = userMessage.toLowerCase();
+      
+      for (const [keyword, responses] of Object.entries(dummyResponses)) {
+        if (lowerMessage.includes(keyword)) {
+          return responses[Math.floor(Math.random() * responses.length)];
+        }
+      }
+      
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+
+    function addMessage(text, isUser = true) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', isUser ? 'user' : 'bot');
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.classList.add('message-content');
+      contentDiv.textContent = text;
+      
+      messageDiv.appendChild(contentDiv);
+      messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', 'bot');
+      messageDiv.id = 'typingIndicator';
+      
+      const typingDiv = document.createElement('div');
+      typingDiv.classList.add('typing-indicator');
+      
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('typing-dot');
+        typingDiv.appendChild(dot);
+      }
+      
+      messageDiv.appendChild(typingDiv);
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typingIndicator = document.getElementById('typingIndicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+    }
+
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      
+      if (!message) return;
+      
+      // Add user message
+      addMessage(message, true);
+      messageInput.value = '';
+      
+      // Show typing indicator
+      showTypingIndicator();
+      
+      // Simulate bot response delay
+      setTimeout(() => {
+        removeTypingIndicator();
+        const botResponse = getBotResponse(message);
+        addMessage(botResponse, false);
+      }, 1000 + Math.random() * 500);
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Focus on input on load
+    messageInput.focus();
+  </script>
+</body>
+</html>

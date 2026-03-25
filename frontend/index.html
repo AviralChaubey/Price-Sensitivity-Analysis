@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Price Sensitivity Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #070b12;
+      --card: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --grad1: radial-gradient(1200px 800px at 15% 10%, rgba(43,152,255,0.25), rgba(255,255,255,0) 60%),
+               radial-gradient(1000px 600px at 85% 30%, rgba(96,165,250,0.2), rgba(255,255,255,0) 55%),
+               radial-gradient(800px 500px at 50% 90%, rgba(16,185,129,0.15), rgba(255,255,255,0) 50%);
+    }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      background-image: var(--grad1);
+      color: #e8eef6;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .btn {
+      transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+      will-change: transform;
+    }
+    .btn:active { transform: translateY(1px) scale(0.995); }
+    .ring-fancy {
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.05) inset,
+        0 8px 30px rgba(43,152,255,0.25);
+    }
+    .range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 18px; width: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #60a5fa, #22d3ee);
+      border: 2px solid #0b1020;
+      box-shadow: 0 4px 12px rgba(34,211,238,0.4);
+      cursor: pointer;
+      margin-top: -6px;
+    }
+    .range::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, rgba(59,130,246,0.8), rgba(34,211,238,0.8));
+    }
+    .range::-moz-range-thumb {
+      height: 18px; width: 18px; border-radius: 50%;
+      background: linear-gradient(135deg, #60a5fa, #22d3ee);
+      border: 2px solid #0b1020;
+      box-shadow: 0 4px 12px rgba(34,211,238,0.4);
+      cursor: pointer;
+    }
+    .range::-moz-range-track {
+      height: 6px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, rgba(59,130,246,0.8), rgba(34,211,238,0.8));
+    }
+    .fade-in { animation: fade .5s ease both; }
+    @keyframes fade { from{opacity:0; transform: translateY(8px)} to{opacity:1; transform: translateY(0)} }
+    .tooltip {
+      position: relative;
+    }
+    .tooltip .tip {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity .2s ease, transform .2s ease;
+      transform: translateY(4px);
+      position: absolute;
+      top: 120%;
+      left: 50%;
+      transform-origin: top center;
+      translate: -50% 0;
+      white-space: nowrap;
+    }
+    .tooltip:hover .tip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .kbd {
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .gradient-text {
+      background: linear-gradient(90deg, #93c5fd, #22d3ee, #34d399);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl opacity-30 bg-sky-500"></div>
+      <div class="absolute -bottom-24 -right-24 w-80 h-80 rounded-full blur-3xl opacity-25 bg-emerald-400"></div>
+    </div>
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 grid place-items-center ring-1 ring-white/20">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M3 17l6-6 4 4 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 8v7h-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+          </svg>
+        </div>
+        <span class="font-semibold tracking-tight text-white/90">Price Sensitivity Analyzer</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-6 text-sm text-white/70">
+        <a href="dashboard.html" class="hover:text-white hover:underline">Dashboard</a>
+        <a href="#analyzer" class="hover:text-white">Analyzer</a>
+        <a href="#insights" class="hover:text-white">Insights</a>
+        <a href="#about" class="hover:text-white">About</a>
+        <a href="#export" id="exportLink" class="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 border border-white/10">Export</a>
+        <a href="ai-bot.html" class="btn px-3 py-1 rounded-md bg-gradient-to-r from-sky-600 to-emerald-500 hover:from-sky-500 hover:to-emerald-400 text-white border border-white/20">🤖 AI Bot</a>
+      </div>
+    </nav>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div class="fade-in">
+          <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
+            Understand your <span class="gradient-text">customers' willingness to pay</span>
+          </h1>
+          <p class="mt-4 text-white/70 max-w-xl">Model demand vs. price, estimate price elasticity, and simulate revenue to identify optimal pricing points for your product or service.</p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a href="#analyzer" class="btn ring-fancy inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-600 to-emerald-500 hover:from-sky-500 hover:to-emerald-400 text-white font-medium">
+              Launch Analyzer
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H9M17 7v8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <button id="demoDataBtn" class="btn inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white/90">
+              Load Demo Data
+            </button>
+            <span class="text-xs text-white/50">Tip: Press <span class="kbd">D</span> to toggle demo</span>
+          </div>
+        </div>
+        <div class="card rounded-2xl p-5 md:p-6 fade-in">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm text-white/70">Revenue Curve (Quick Preview)</div>
+            <div class="text-xs text-white/50">Live</div>
+          </div>
+          <canvas id="heroChart" height="140"></canvas>
+          <div class="mt-3 grid grid-cols-3 gap-3 text-center">
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Opt. Price</div>
+              <div id="heroOptPrice" class="text-lg font-semibold">-</div>
+            </div>
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Opt. Revenue</div>
+              <div id="heroOptRevenue" class="text-lg font-semibold">-</div>
+            </div>
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Elasticity</div>
+              <div id="heroElasticity" class="text-lg font-semibold">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </header>
+
+  <main id="analyzer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1 space-y-6">
+        <div class="card rounded-2xl p-5">
+          <h2 class="text-lg font-semibold mb-4">Inputs</h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-white/70">Base Demand (units at price = 0)</label>
+              <div class="flex items-center gap-3 mt-2">
+                <input id="baseDemand" type="number" min="0" value="1000" class="w-28 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+                <input id="baseDemandRange" type="range" min="100" max="5000" value="1000" class="range flex-1"/>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <label class="text-sm text-white/70">Price Elasticity (ε)</label>
+                <div class="tooltip text-xs text-white/60">
+                  What is this?
+                  <div class="tip glass rounded-md px-2 py-1 text-[11px]">Percent change in demand per 1% change in price (negative value).</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 mt-2">
+                <input id="elasticity" type="number" step="0.01" value="-1.4" class="w-28 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+                <input id="elasticityRange" type="range" min="-3" max="-0.1" step="0.01" value="-1.4" class="range flex-1"/>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm text-white/70">Cost per Unit</label>
+              <div class="flex items-center gap-3 mt-2">
+                <input id="cost" type="number" step="0.01" value="12" class="w-28 px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+                <input id="costRange" type="range" min="0" max="200" step="0.5" value="12" class="range flex-1"/>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm text-white/70">Price Range to Explore</label>
+              <div class="grid grid-cols-2 gap-3 mt-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-white/60">Min</span>
+                  <input id="priceMin" type="number" step="0.5" value="5" class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-white/60">Max</span>
+                  <input id="priceMax" type="number" step="0.5" value="80" class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm text-white/70">Demand Model</label>
+              <div class="mt-2 grid grid-cols-2 gap-2">
+                <button data-model="power" class="model-btn btn px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20">Constant Elasticity</button>
+                <button data-model="linear" class="model-btn btn px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10">Linear</button>
+              </div>
+              <p class="text-xs text-white/50 mt-2">Switch model to compare outcomes.</p>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+              <button id="runBtn" class="btn w-full px-4 py-3 rounded-xl bg-gradient-to-r from-sky-600 to-emerald-500 hover:from-sky-500 hover:to-emerald-400 text-white font-medium">Run Analysis</button>
+              <button id="resetBtn" class="btn px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-5" id="export">
+          <h2 class="text-lg font-semibold mb-4">Export</h2>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <button id="exportPNG" class="btn px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white">Chart PNG</button>
+            <button id="exportCSV" class="btn px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white">Data CSV</button>
+          </div>
+          <p class="text-xs text-white/50 mt-3">Exports include Price, Demand, Revenue, Profit, and cumulative metrics.</p>
+        </div>
+
+        <div class="card rounded-2xl p-5" id="about">
+          <h2 class="text-lg font-semibold mb-2">About</h2>
+          <p class="text-sm text-white/70">This tool explores how demand changes with price to help you find optimal pricing. It uses either a constant elasticity or linear demand model and computes revenue, profit, and the price where revenue or profit is maximized.</p>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 space-y-6">
+        <div class="card rounded-2xl p-5">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold">Price Sensitivity Curves</h2>
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="flex items-center gap-2 text-sm text-white/70">
+                <input id="toggleRevenue" type="checkbox" class="accent-sky-400" checked/>
+                Revenue
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/70">
+                <input id="toggleProfit" type="checkbox" class="accent-emerald-400" checked/>
+                Profit
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/70">
+                <input id="toggleDemand" type="checkbox" class="accent-indigo-400" checked/>
+                Demand
+              </label>
+            </div>
+          </div>
+          <canvas id="mainChart" height="260"></canvas>
+          <div class="mt-4 grid sm:grid-cols-4 gap-3">
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Optimal Price (Revenue)</div>
+              <div id="optPriceRev" class="text-lg font-semibold">-</div>
+              <div id="optRevenue" class="text-xs text-white/60">-</div>
+            </div>
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Optimal Price (Profit)</div>
+              <div id="optPriceProfit" class="text-lg font-semibold">-</div>
+              <div id="optProfit" class="text-xs text-white/60">-</div>
+            </div>
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Elasticity at Opt. Rev</div>
+              <div id="elasticityAtOpt" class="text-lg font-semibold">-</div>
+              <div class="text-xs text-white/60">Unit Margin at Opt. Profit: <span id="marginAtOpt">-</span></div>
+            </div>
+            <div class="glass rounded-xl p-3">
+              <div class="text-xs text-white/60">Breakeven Price</div>
+              <div id="breakeven" class="text-lg font-semibold">-</div>
+              <div class="text-xs text-white/60">Demand at Breakeven: <span id="demandAtBE">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="insights" class="card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">Insights</h2>
+            <button id="copyInsights" class="btn text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10">Copy</button>
+          </div>
+          <ul id="insightList" class="space-y-2 text-sm text-white/80"></ul>
+        </div>
+
+        <div class="card rounded-2xl p-5">
+          <h2 class="text-lg font-semibold mb-4">Data Table</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="text-white/60">
+                <tr>
+                  <th class="text-left py-2 pr-4">Price</th>
+                  <th class="text-left py-2 pr-4">Demand</th>
+                  <th class="text-left py-2 pr-4">Revenue</th>
+                  <th class="text-left py-2 pr-4">Profit</th>
+                </tr>
+              </thead>
+              <tbody id="dataTable" class="text-white/80"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="mt-10 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-xs text-white/50 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>© <span id="year"></span> Price Sensitivity Analyzer</div>
+      <div>Built for data science projects — export-ready and mobile-friendly</div>
+    </div>
+  </footer>
+
+  <script>
+    // --- CONFIGURATION ---
+    // Ensure your backend is running on localhost:3000 or update this URL
+    const API_URL = "http://localhost:3000/api/analyze";
+
+    const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+    const money = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2
+    });
+
+    const els = {
+      baseDemand: document.getElementById('baseDemand'),
+      baseDemandRange: document.getElementById('baseDemandRange'),
+      elasticity: document.getElementById('elasticity'),
+      elasticityRange: document.getElementById('elasticityRange'),
+      cost: document.getElementById('cost'),
+      costRange: document.getElementById('costRange'),
+      priceMin: document.getElementById('priceMin'),
+      priceMax: document.getElementById('priceMax'),
+      runBtn: document.getElementById('runBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      modelBtns: document.querySelectorAll('.model-btn'),
+      toggleRevenue: document.getElementById('toggleRevenue'),
+      toggleProfit: document.getElementById('toggleProfit'),
+      toggleDemand: document.getElementById('toggleDemand'),
+      optPriceRev: document.getElementById('optPriceRev'),
+      optRevenue: document.getElementById('optRevenue'),
+      optPriceProfit: document.getElementById('optPriceProfit'),
+      optProfit: document.getElementById('optProfit'),
+      elasticityAtOpt: document.getElementById('elasticityAtOpt'),
+      marginAtOpt: document.getElementById('marginAtOpt'),
+      breakeven: document.getElementById('breakeven'),
+      demandAtBE: document.getElementById('demandAtBE'),
+      dataTable: document.getElementById('dataTable'),
+      insightList: document.getElementById('insightList'),
+      copyInsights: document.getElementById('copyInsights'),
+      exportPNG: document.getElementById('exportPNG'),
+      exportCSV: document.getElementById('exportCSV'),
+      exportLink: document.getElementById('exportLink'),
+      heroChart: document.getElementById('heroChart'),
+      heroOptPrice: document.getElementById('heroOptPrice'),
+      heroOptRevenue: document.getElementById('heroOptRevenue'),
+      heroElasticity: document.getElementById('heroElasticity'),
+      demoDataBtn: document.getElementById('demoDataBtn')
+    };
+
+    let model = 'power';
+    let mainChart, heroChart;
+    let lastData = []; // Stores the array returned from the backend
+
+    // --- UI SYNC & EVENTS ---
+
+    const sync = (a, b) => {
+      a.addEventListener('input', () => { b.value = a.value; run(); });
+      b.addEventListener('input', () => { a.value = b.value; run(); });
+    };
+    sync(els.baseDemand, els.baseDemandRange);
+    sync(els.elasticity, els.elasticityRange);
+    sync(els.cost, els.costRange);
+
+    els.modelBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        model = btn.dataset.model;
+        els.modelBtns.forEach(b => b.classList.toggle('bg-white/10', b.dataset.model === model));
+        els.modelBtns.forEach(b => b.classList.toggle('bg-white/5', b.dataset.model !== model));
+        run();
+      });
+    });
+
+    [els.priceMin, els.priceMax].forEach(el => el.addEventListener('input', () => run()));
+    [els.toggleRevenue, els.toggleProfit, els.toggleDemand].forEach(el => el.addEventListener('change', () => updateChartVisibility()));
+
+    els.runBtn.addEventListener('click', run);
+    els.resetBtn.addEventListener('click', () => {
+      els.baseDemand.value = 1000; els.baseDemandRange.value = 1000;
+      els.elasticity.value = -1.4; els.elasticityRange.value = -1.4;
+      els.cost.value = 12; els.costRange.value = 12;
+      els.priceMin.value = 5; els.priceMax.value = 80;
+      model = 'power';
+      els.modelBtns.forEach(b => {
+        b.classList.toggle('bg-white/10', b.dataset.model === model);
+        b.classList.toggle('bg-white/5', b.dataset.model !== model);
+      });
+      run();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'd') demoToggle();
+    });
+    els.demoDataBtn.addEventListener('click', demoToggle);
+
+    function demoToggle() {
+      if (Number(els.baseDemand.value) !== 1000 || Number(els.elasticity.value) !== -1.4) {
+        // Reset to defaults
+        els.baseDemand.value = 1000; els.baseDemandRange.value = 1000;
+        els.elasticity.value = -1.4; els.elasticityRange.value = -1.4;
+        els.cost.value = 12; els.costRange.value = 12;
+        els.priceMin.value = 5; els.priceMax.value = 80;
+        model = 'power';
+      } else {
+        // --- MACHINE LEARNING MODEL DATA INJECTION ---
+        // Real data imported from Jupyter Notebook
+        els.baseDemand.value = 342; els.baseDemandRange.value = 342;
+        els.elasticity.value = -1.03; els.elasticityRange.value = -1.03;
+        // -------------------------------------------------------------
+        els.cost.value = 1.50; els.costRange.value = 1.50;
+        els.priceMin.value = 0.5; els.priceMax.value = 15;
+        model = 'power';
+      }
+      els.modelBtns.forEach(b => {
+        b.classList.toggle('bg-white/10', b.dataset.model === model);
+        b.classList.toggle('bg-white/5', b.dataset.model !== model);
+      });
+      run();
+    }
+
+    // --- CORE LOGIC (API FETCH) ---
+
+    async function run() {
+      const payload = {
+        baseDemand: +els.baseDemand.value,
+        elasticity: +els.elasticity.value,
+        cost: +els.cost.value,
+        priceMin: +els.priceMin.value,
+        priceMax: +els.priceMax.value,
+        model
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Backend error");
+
+        const result = await res.json();
+        lastData = result.data;
+
+        // Update all UI components using the fetched data
+        updateHeroPreview();
+        renderChart();
+        
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Could not connect to backend. Is it running on " + API_URL + "?");
+      }
+    }
+
+    // --- HELPERS FOR STATS (Derived from Backend Data) ---
+
+    function deriveStats(data) {
+      if (!data || !data.length) return null;
+
+      // Find Optimal Revenue
+      const revSorted = [...data].sort((a, b) => b.revenue - a.revenue);
+      const optRev = revSorted[0];
+
+      // Find Optimal Profit
+      const profSorted = [...data].sort((a, b) => b.profit - a.profit);
+      const optProf = profSorted[0];
+
+      // Find Breakeven (closest to 0 profit)
+      const beSorted = [...data].sort((a, b) => Math.abs(a.profit) - Math.abs(b.profit));
+      const breakeven = beSorted[0];
+
+      return { optRev, optProf, breakeven };
+    }
+
+    // --- RENDERING FUNCTIONS ---
+
+    function getGradient(canvas, scheme='combo') {
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      if (scheme === 'sky') {
+        gradient.addColorStop(0, 'rgba(90,183,255,0.45)');
+        gradient.addColorStop(1, 'rgba(90,183,255,0.02)');
+      } else if (scheme === 'emerald') {
+        gradient.addColorStop(0, 'rgba(52,211,153,0.45)');
+        gradient.addColorStop(1, 'rgba(52,211,153,0.02)');
+      } else {
+        gradient.addColorStop(0, 'rgba(90,183,255,0.35)');
+        gradient.addColorStop(0.5, 'rgba(34,211,238,0.25)');
+        gradient.addColorStop(1, 'rgba(52,211,153,0.02)');
+      }
+      return gradient;
+    }
+
+    function updateHeroPreview() {
+      const stats = deriveStats(lastData);
+      if (!stats) return;
+
+      const labels = lastData.map(d => d.price.toFixed(2));
+      const data = lastData.map(d => d.revenue);
+
+      if (!heroChart) {
+        heroChart = new Chart(els.heroChart.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Revenue',
+              data,
+              borderColor: '#5ab7ff',
+              borderWidth: 2,
+              fill: true,
+              backgroundColor: getGradient(els.heroChart, 'sky'),
+              tension: 0.3,
+              pointRadius: 0,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { enabled: false }},
+            scales: {
+              x: { ticks: { display: false }, grid: { display: false }},
+              y: { ticks: { display: false }, grid: { display: false }}
+            }
+          }
+        });
+      } else {
+        heroChart.data.labels = labels;
+        heroChart.data.datasets[0].data = data;
+        heroChart.data.datasets[0].backgroundColor = getGradient(els.heroChart, 'sky');
+        heroChart.update();
+      }
+
+      els.heroOptPrice.textContent = money.format(stats.optRev.price);
+      els.heroOptRevenue.textContent = money.format(stats.optRev.revenue);
+      els.heroElasticity.textContent = els.elasticity.value;
+    }
+
+    function renderChart() {
+      if (!lastData.length) return;
+
+      const labels = lastData.map(d => d.price.toFixed(2));
+      const revenue = lastData.map(d => d.revenue);
+      const profit = lastData.map(d => d.profit);
+      const demand = lastData.map(d => d.demand);
+
+      const datasets = [
+        {
+          yAxisID: 'y1',
+          label: 'Revenue',
+          data: revenue,
+          borderColor: '#60a5fa',
+          backgroundColor: getGradient(document.getElementById('mainChart'), 'sky'),
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 0,
+          hidden: !els.toggleRevenue.checked,
+        },
+        {
+          yAxisID: 'y1',
+          label: 'Profit',
+          data: profit,
+          borderColor: '#34d399',
+          backgroundColor: getGradient(document.getElementById('mainChart'), 'emerald'),
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 0,
+          hidden: !els.toggleProfit.checked,
+        },
+        {
+          yAxisID: 'y2',
+          label: 'Demand',
+          data: demand,
+          borderColor: '#a78bfa',
+          backgroundColor: 'rgba(167,139,250,0.15)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 0,
+          hidden: !els.toggleDemand.checked,
+        }
+      ];
+
+      if (!mainChart) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        mainChart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                display: true,
+                labels: { color: '#cdd6e5' }
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const label = ctx.dataset.label || '';
+                    const v = ctx.parsed.y;
+                    if (label === 'Demand') return ` ${label}: ${fmt.format(v)}`;
+                    return ` ${label}: ${money.format(v)}`;
+                  },
+                  title: (items) => `Price: ${money.format(items[0].label)}`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255,255,255,0.06)' },
+                ticks: { color: '#cdd6e5' }
+              },
+              y1: {
+                type: 'linear',
+                position: 'left',
+                grid: { color: 'rgba(255,255,255,0.06)' },
+                ticks: { color: '#cdd6e5', callback: v => money.format(v) }
+              },
+              y2: {
+                type: 'linear',
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: { color: '#cdd6e5' }
+              }
+            }
+          }
+        });
+      } else {
+        mainChart.data.labels = labels;
+        mainChart.data.datasets.forEach((ds, i) => {
+          ds.data = datasets[i].data;
+          ds.hidden = datasets[i].hidden;
+          ds.backgroundColor = datasets[i].backgroundColor;
+        });
+        mainChart.update();
+      }
+      updateKPIs();
+    }
+
+    function updateChartVisibility() {
+      if (!mainChart) return;
+      mainChart.data.datasets[0].hidden = !els.toggleRevenue.checked;
+      mainChart.data.datasets[1].hidden = !els.toggleProfit.checked;
+      mainChart.data.datasets[2].hidden = !els.toggleDemand.checked;
+      mainChart.update();
+    }
+
+    function updateKPIs() {
+      const stats = deriveStats(lastData);
+      if (!stats) return;
+
+      const cost = Number(els.cost.value);
+      const e = Number(els.elasticity.value);
+
+      els.optPriceRev.textContent = money.format(stats.optRev.price);
+      els.optRevenue.textContent = `${money.format(stats.optRev.revenue)} (Demand: ${fmt.format(stats.optRev.demand)})`;
+      els.optPriceProfit.textContent = money.format(stats.optProf.price);
+      els.optProfit.textContent = `${money.format(stats.optProf.profit)} (Demand: ${fmt.format(stats.optProf.demand)})`;
+      
+      els.elasticityAtOpt.textContent = e.toFixed(2);
+      const margin = Math.max(stats.optProf.price - cost, 0);
+      els.marginAtOpt.textContent = money.format(margin);
+      
+      els.breakeven.textContent = money.format(stats.breakeven.price);
+      els.demandAtBE.textContent = fmt.format(stats.breakeven.demand);
+
+      renderTable();
+      renderInsights(stats, e, cost, stats.breakeven);
+    }
+
+    function renderTable() {
+      const rows = lastData.map(r => `
+        <tr class="border-t border-white/5 hover:bg-white/5">
+          <td class="py-2 pr-4">${money.format(r.price)}</td>
+          <td class="py-2 pr-4">${fmt.format(r.demand)}</td>
+          <td class="py-2 pr-4">${money.format(r.revenue)}</td>
+          <td class="py-2 pr-4 ${r.profit < 0 ? 'text-rose-300' : ''}">${money.format(r.profit)}</td>
+        </tr>
+      `).join('');
+      els.dataTable.innerHTML = rows;
+    }
+
+    function renderInsights(stats, e, c, breakeven) {
+      const bullets = [
+        `Revenue is maximized at ${money.format(stats.optRev.price)} with demand of ${fmt.format(stats.optRev.demand)} and revenue ${money.format(stats.optRev.revenue)}.`,
+        `Profit is maximized at ${money.format(stats.optProf.price)} with unit margin ${money.format(stats.optProf.price - c)} and profit ${money.format(stats.optProf.profit)}.`,
+        `Elasticity assumed constant at ε = ${e.toFixed(2)}${e < -1 ? ' (elastic)' : ' (inelastic)'}.`,
+        `Breakeven occurs around ${money.format(breakeven.price)} with demand of ${fmt.format(breakeven.demand)}.`,
+        `${e < -1 ? 'Consider lowering price slightly near the revenue optimum; demand is elastic.' : 'Consider increasing price; demand is inelastic and revenue may increase.'}`
+      ];
+      els.insightList.innerHTML = bullets.map(b => `<li class="flex items-start gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" class="mt-1" fill="none">
+          <path d="M12 3v18M3 12h18" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>${b}</span>
+      </li>`).join('');
+    }
+
+    // --- EXPORT FEATURES ---
+    
+    els.exportPNG.addEventListener('click', () => {
+      if (!mainChart) return;
+      const link = document.createElement('a');
+      link.download = 'price-sensitivity-chart.png';
+      link.href = mainChart.toBase64Image('image/png', 1);
+      link.click();
+    });
+
+    els.exportCSV.addEventListener('click', () => {
+      if (!lastData.length) return;
+      const header = ['Price', 'Demand', 'Revenue', 'Profit'];
+      const lines = [header.join(',')].concat(lastData.map(r => [
+        r.price.toFixed(2),
+        r.demand.toFixed(2),
+        r.revenue.toFixed(2),
+        r.profit.toFixed(2)
+      ].join(',')));
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = 'price-sensitivity-data.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    els.copyInsights.addEventListener('click', async () => {
+      const text = Array.from(els.insightList.querySelectorAll('li span')).map(s => '- ' + s.textContent).join('\n');
+      try { await navigator.clipboard.writeText(text); els.copyInsights.textContent = 'Copied!'; setTimeout(()=> els.copyInsights.textContent='Copy', 1500);} catch(e){}
+    });
+
+    els.exportLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('export').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Initial run
+    run();
+  </script>
+</body>
+</html>
